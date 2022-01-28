@@ -64,6 +64,7 @@ variable "ssh_admin_user" {
 variable "admin_user_password" { 
   description = "Optional password for admin user"
   type        = string
+  sensitive   = true
   default     = ""
 }
 
