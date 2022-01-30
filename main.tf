@@ -59,7 +59,7 @@ data "template_cloudinit_config" "user_data" {
 resource "libvirt_cloudinit_disk" "k8_node" {
   name           = local.cloud_init_volume_name
   user_data      = data.template_cloudinit_config.user_data.rendered
-  network_config = var.macvtap_interface != "" ? local.network_config : null
+  network_config = length(var.macvtap_interfaces) == 0 ? local.network_config : null
   pool           = var.cloud_init_volume_pool
 }
 
