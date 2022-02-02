@@ -3,13 +3,22 @@ locals {
   network_config = templatefile(
     "${path.module}/files/network_config.yaml.tpl", 
     {
-      interface_name_match = var.macvtap_vm_interface_name_match
-      subnet_prefix_length = var.macvtap_subnet_prefix_length
-      vm_ip = var.ip
-      gateway_ip = var.macvtap_gateway_ip
-      dns_servers = var.macvtap_dns_servers
+      macvtap_interfaces = var.macvtap_interfaces
     }
   )
+  network_interfaces = length(var.macvtap_interfaces) == 0 ? [{
+    network_id = var.network_id
+    macvtap = null
+    addresses = [var.ip]
+    mac = var.mac != "" ? var.mac : null
+    hostname = var.name
+  }] : [for macvtap_interface in var.macvtap_interfaces: {
+    network_id = null
+    macvtap = macvtap_interface.interface
+    addresses = null
+    mac = macvtap_interface.mac
+    hostname = null
+  }]
 }
 
 data "template_cloudinit_config" "user_data" {
@@ -50,7 +59,7 @@ data "template_cloudinit_config" "user_data" {
 resource "libvirt_cloudinit_disk" "k8_node" {
   name           = local.cloud_init_volume_name
   user_data      = data.template_cloudinit_config.user_data.rendered
-  network_config = var.macvtap_interface != "" ? local.network_config : null
+  network_config = length(var.macvtap_interfaces) == 0 ? local.network_config : null
   pool           = var.cloud_init_volume_pool
 }
 
@@ -68,12 +77,15 @@ resource "libvirt_domain" "k8_node" {
     volume_id = var.volume_id
   }
 
-  network_interface {
-    network_id = var.network_id != "" ? var.network_id : null
-    macvtap = var.macvtap_interface != "" ? var.macvtap_interface : null
-    addresses = var.network_id != "" ? [var.ip] : null
-    mac = var.mac != "" ? var.mac : null
-    hostname = var.network_id != "" ? var.name : null
+  dynamic "network_interface" {
+    for_each = local.network_interfaces
+    content {
+      network_id = network_interface.value["network_id"]
+      macvtap = network_interface.value["macvtap"]
+      addresses = network_interface.value["addresses"]
+      mac = network_interface.value["mac"]
+      hostname = network_interface.value["hostname"]
+    }
   }
 
   autostart = true

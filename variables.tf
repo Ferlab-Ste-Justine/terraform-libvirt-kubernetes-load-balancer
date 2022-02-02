@@ -26,46 +26,22 @@ variable "network_id" {
   default     = ""
 }
 
-variable "macvtap_interface" {
-  description = "Interface that you plan to connect your vm to via a lower macvtap interface. Note that either this or network_id should be set, but not both."
-  type        = string
-  default     = ""
-}
-
-variable "macvtap_vm_interface_name_match" {
-  description = "Expected pattern of the network interface name in the vm."
-  type        = string
-  //https://github.com/systemd/systemd/blob/main/src/udev/udev-builtin-net_id.c#L932
-  default     = "en*"
-}
-
-variable "macvtap_subnet_prefix_length" {
-  description = "Length of the subnet prefix (ie, the yy in xxx.xxx.xxx.xxx/yy). Used for macvtap only."
-  type        = string
-  default     = ""
-}
-
-variable "macvtap_gateway_ip" {
-  description = "Ip of the physical network's gateway. Used for macvtap only."
-  type        = string
-  default     = ""
-}
-
-variable "macvtap_dns_servers" {
-  description = "Ip of dns servers to setup on the vm, useful mostly during the initial cloud-init bootstraping to resolve domain of installables. Used for macvtap only."
-  type        = list(string)
-  default     = []
-}
-
 variable "ip" {
-  description = "Ip address of the vm"
+  description = "Ip address of the vm if a libvirt network is selected"
   type        = string
+  default     = ""
 }
 
 variable "mac" {
-  description = "Mac address of the vm"
+  description = "Mac address of the vm if a libvirt network is selected"
   type        = string
   default     = ""
+}
+
+variable "macvtap_interfaces" {
+  description = "List of macvtap interfaces. Mutually exclusive with the network_id, ip and mac fields. Each entry has the following keys: interface, prefix_length, ip, mac, gateway and dns_servers"
+  type        = list(any)
+  default = []
 }
 
 variable "cloud_init_volume_pool" {
@@ -88,6 +64,7 @@ variable "ssh_admin_user" {
 variable "admin_user_password" { 
   description = "Optional password for admin user"
   type        = string
+  sensitive   = true
   default     = ""
 }
 
