@@ -22,6 +22,22 @@ write_files:
     permissions: "0444"
     content: |
       ${indent(6, haproxy_config)}
+  #Chrony config
+%{ if chrony.enabled ~}
+  - path: /opt/chrony.conf
+    owner: root:root
+    permissions: "0444"
+    content: |
+%{ for server in chrony.servers ~}
+      server ${join(" ", concat([server.url], server.options))}
+%{ endfor ~}
+%{ for pool in chrony.pools ~}
+      pool ${join(" ", concat([pool.url], pool.options))}
+%{ endfor ~}
+      driftfile /var/lib/chrony/drift
+      makestep ${chrony.makestep.threshold} ${chrony.makestep.limit}
+      rtcsync
+%{ endif ~}
   #Prometheus node exporter systemd configuration
   - path: /etc/systemd/system/node-exporter.service
     owner: root:root
@@ -49,7 +65,15 @@ packages:
   - curl
   - gnupg-agent
   - software-properties-common
+%{ if chrony.enabled ~}
+  - chrony
+%{ endif ~}
 runcmd:
+  #Finalize Chrony Setup
+%{ if chrony.enabled ~}
+  - cp /opt/chrony.conf /etc/chrony/chrony.conf
+  - systemctl restart chrony.service 
+%{ endif ~}
   #Install k8 api load balancer as a background docker container
   - curl -fsSL https://download.docker.com/linux/ubuntu/gpg | apt-key add -
   - add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable"
