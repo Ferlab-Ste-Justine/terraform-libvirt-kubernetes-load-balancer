@@ -7,12 +7,14 @@ locals {
     }
   )
   network_interfaces = length(var.macvtap_interfaces) == 0 ? [{
-    network_id = var.network_id
+    network_name = var.libvirt_network.network_name != "" ? var.libvirt_network.network_name : null
+    network_id = var.libvirt_network.network_id != "" ? var.libvirt_network.network_id : null
     macvtap = null
-    addresses = [var.ip]
-    mac = var.mac != "" ? var.mac : null
+    addresses = [var.libvirt_network.ip]
+    mac = var.libvirt_network.mac != "" ? var.libvirt_network.mac : null
     hostname = var.name
   }] : [for macvtap_interface in var.macvtap_interfaces: {
+    network_name = null
     network_id = null
     macvtap = macvtap_interface.interface
     addresses = null
@@ -82,6 +84,7 @@ resource "libvirt_domain" "k8_node" {
     for_each = local.network_interfaces
     content {
       network_id = network_interface.value["network_id"]
+      network_name = network_interface.value["network_name"]
       macvtap = network_interface.value["macvtap"]
       addresses = network_interface.value["addresses"]
       mac = network_interface.value["mac"]
