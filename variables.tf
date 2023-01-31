@@ -78,6 +78,28 @@ variable "ssh_admin_public_key" {
   type        = string
 }
 
+variable "ssh_host_key_rsa" {
+  type = object({
+    public = string
+    private = string
+  })
+  default = {
+    public = ""
+    private = ""
+  }
+}
+
+variable "ssh_host_key_ecdsa" {
+  type = object({
+    public = string
+    private = string
+  })
+  default = {
+    public = ""
+    private = ""
+  }
+}
+
 variable "k8_max_workers_count" {
   description = "Maximum expected number of k8 workers"
   type = number
@@ -152,6 +174,24 @@ variable "k8_workers_ingress_max_https_connections" {
   description = "Max number of concurrent https connections the load balancer will allow on the workers"
   type = number
   default = 200
+}
+
+variable "tunnel" {
+  description = "Setting for restricting the bastion access via an ssh tunnel only"
+  type = object({
+    enabled = bool
+    ssh = object({
+      user = string
+      authorized_key = string
+    })
+  })
+  default = {
+    enabled = false
+    ssh = {
+      user = ""
+      authorized_key = ""
+    }
+  }
 }
 
 variable "chrony" {
