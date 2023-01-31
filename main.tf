@@ -36,6 +36,9 @@ data "template_cloudinit_config" "user_data" {
         ssh_admin_user = var.ssh_admin_user
         admin_user_password = var.admin_user_password
         chrony = var.chrony
+        tunnel = var.tunnel
+        ssh_host_key_rsa = var.ssh_host_key_rsa
+        ssh_host_key_ecdsa = var.ssh_host_key_ecdsa
         haproxy_config = templatefile(
           "${path.module}/files/lb-haproxy.cfg",
           {
@@ -52,6 +55,7 @@ data "template_cloudinit_config" "user_data" {
             k8_max_api_connections = var.k8_masters_max_api_connections
             k8_max_masters_count = var.k8_max_masters_count
             k8_max_workers_count = var.k8_max_workers_count
+            tunnel = var.tunnel
           }
         )
       }

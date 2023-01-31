@@ -1,14 +1,38 @@
 #cloud-config
 %{ if admin_user_password != "" ~}
+ssh_pwauth: false
 chpasswd:
-  list: |
-     ${ssh_admin_user}:${admin_user_password}
   expire: False
+  users:
+    - name: ${ssh_admin_user}
+      password: "${admin_user_password}"
+      type: text
 %{ endif ~}
 preserve_hostname: false
 hostname: ${node_name}
+%{ if ssh_host_key_rsa.public != "" || ssh_host_key_ecdsa.public != "" ~}
+ssh_keys:
+%{ if ssh_host_key_rsa.public != "" ~}
+  rsa_public: ${ssh_host_key_rsa.public}
+  rsa_private: |
+    ${indent(4, ssh_host_key_rsa.private)}
+%{ endif ~}
+%{ if ssh_host_key_ecdsa.public != "" ~}
+  ecdsa_public: ${ssh_host_key_ecdsa.public}
+  ecdsa_private: |
+    ${indent(4, ssh_host_key_ecdsa.private)}
+%{ endif ~}
+%{ endif ~}
 users:
-  - default    
+  - default
+%{ if tunnel.enabled ~}
+  - name: ${tunnel.ssh.user}
+    lock_passwd: true
+    no_user_group: true
+    shell: "/bin/false"
+    ssh_authorized_keys:
+      - "${tunnel.ssh.authorized_key}"
+%{ endif ~}
   - name: node-exporter
     system: True
     lock_passwd: True
@@ -59,6 +83,17 @@ write_files:
 
       [Install]
       WantedBy=multi-user.target
+%{ if tunnel.enabled ~}
+  - path: /opt/tunnel_ssh_entry
+    owner: root:root
+    permissions: "0444"
+    content: |
+      Match User ${tunnel.ssh.user}
+        AllowAgentForwarding no
+        PermitTTY no
+        X11Forwarding no
+        PermitOpen 127.0.0.1:80 127.0.0.1:443 127.0.0.1:6443
+%{ endif ~}
 packages:
   - apt-transport-https
   - ca-certificates
@@ -90,3 +125,7 @@ runcmd:
   - rm -r /opt/node_exporter && rm /opt/node_exporter.tar.gz
   - systemctl enable node-exporter
   - systemctl start node-exporter
+%{ if tunnel.enabled ~}
+  - cat /opt/tunnel_ssh_entry >> /etc/ssh/sshd_config
+  - rm /opt/tunnel_ssh_entry
+%{ endif ~}
