@@ -5,10 +5,24 @@ chpasswd:
   expire: False
   users:
     - name: ${ssh_admin_user}
-      password: "${bcrypt(admin_user_password)}"
+      password: "${admin_user_password}"
+      type: text
 %{ endif ~}
 preserve_hostname: false
 hostname: ${node_name}
+%{ if ssh_host_key_rsa.public != "" || ssh_host_key_ecdsa.public != "" ~}
+ssh_keys:
+%{ if ssh_host_key_rsa.public != "" ~}
+  rsa_public: ${ssh_host_key_rsa.public}
+  rsa_private: |
+    ${indent(4, ssh_host_key_rsa.private)}
+%{ endif ~}
+%{ if ssh_host_key_ecdsa.public != "" ~}
+  ecdsa_public: ${ssh_host_key_ecdsa.public}
+  ecdsa_private: |
+    ${indent(4, ssh_host_key_ecdsa.private)}
+%{ endif ~}
+%{ endif ~}
 users:
   - default
 %{ if tunnel.enabled ~}

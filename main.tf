@@ -37,6 +37,8 @@ data "template_cloudinit_config" "user_data" {
         admin_user_password = var.admin_user_password
         chrony = var.chrony
         tunnel = var.tunnel
+        ssh_host_key_rsa = var.ssh_host_key_rsa
+        ssh_host_key_ecdsa = var.ssh_host_key_ecdsa
         haproxy_config = templatefile(
           "${path.module}/files/lb-haproxy.cfg",
           {
