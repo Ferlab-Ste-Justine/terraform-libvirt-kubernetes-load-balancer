@@ -176,6 +176,22 @@ variable "k8_workers_ingress_max_https_connections" {
   default = 200
 }
 
+variable docker_registry_auth {
+  description = "Docker registry authentication settings"
+  type        = object({
+    enabled  = bool,
+    url      = string,
+    username = string,
+    password = string
+  })
+  default = {
+    enabled  = false
+    url      = "https://index.docker.io/v1/"
+    username = ""
+    password = ""
+  }
+}
+
 variable "tunnel" {
   description = "Setting for restricting the bastion access via an ssh tunnel only"
   type = object({

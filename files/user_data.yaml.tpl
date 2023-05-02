@@ -40,6 +40,19 @@ users:
     ssh_authorized_keys:
       - "${ssh_admin_public_key}"
 write_files:
+%{ if docker_registry_auth.enabled ~}
+  - path: /root/.docker/config.json
+    owner: root:root
+    permissions: "0600"
+    content: |
+      {
+        "auths": {
+          "${docker_registry_auth.url}": {
+            "auth": "${base64encode("${docker_registry_auth.username}:${docker_registry_auth.password}")}"
+          }
+        }
+      }
+%{ endif ~}
   #k8 api load balancer haproxy configuration
   - path: /opt/haproxy/haproxy.cfg
     owner: root:root

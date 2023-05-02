@@ -55,8 +55,13 @@ The module takes the following variables as input:
 - **k8_workers_ingress_https_timeout**: Amount of time an ingress https connection can remain idle before the load balancer times it out. Defaults to **5000ms**
 - **k8_workers_ingress_https_port**: Https port of the ingress on the k8 worker nodes. Defaults to **30001**.
 - **k8_workers_ingress_max_https_connections**: Max number of concurrent https connections to the ingress the load balancer will allow before it starts refusing further connections. Defaults to **200**.
+- **docker_registry_auth**: Optional docker registry authentication settings to have access to private repositories or to avoid reaching the rate limit for anonymous users.
+  - **enabled**: If set to false (the default), no docker config file will be created.
+  - **url**: Url of the registry you want to authenticate to.
+  - **username**: Username for the authentication.
+  - **password**: Password for the authentication.
 - **chrony**: Optional chrony configuration for when you need a more fine-grained ntp setup on your vm. It is an object with the following fields:
-  - **enabled**: If set the false (the default), chrony will not be installed and the vm ntp settings will be left to default.
+  - **enabled**: If set to false (the default), chrony will not be installed and the vm ntp settings will be left to default.
   - **servers**: List of ntp servers to sync from with each entry containing two properties, **url** and **options** (see: https://chrony.tuxfamily.org/doc/4.2/chrony.conf.html#server)
   - **pools**: A list of ntp server pools to sync from with each entry containing two properties, **url** and **options** (see: https://chrony.tuxfamily.org/doc/4.2/chrony.conf.html#pool)
   - **makestep**: An object containing remedial instructions if the clock of the vm is significantly out of sync at startup. It is an object containing two properties, **threshold** and **limit** (see: https://chrony.tuxfamily.org/doc/4.2/chrony.conf.html#makestep)
